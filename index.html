@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatbot with Google Sheet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    #chat {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .msg {
+      margin-bottom: 10px;
+    }
+    .bot {
+      color: blue;
+    }
+    .user {
+      color: green;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <div class="msg bot">👋 Hello! Please enter your USER ID:</div>
+  </div>
+  <input type="text" id="userInput" placeholder="Enter USER ID" style="width: 80%; padding: 10px;">
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzK3reF7KH_YmdDVYSqLHN-2Py5HIm1aTvBOiWf4cdaXEtp1AL4BMPCWZaI0RWa5xzAAw/exec"; // Replace with your real script URL
+
+    function appendMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = "msg " + sender;
+      msg.innerText = text;
+      chat.appendChild(msg);
+    }
+
+    function sendMessage() {
+      const userInput = document.getElementById("userInput");
+      const userId = userInput.value.trim();
+      if (!userId) return;
+
+      appendMessage(userId, "user");
+      userInput.value = "";
+
+      // Remove previous bot messages (except greeting)
+      const oldBotMessages = document.querySelectorAll(".msg.bot:not(:first-child)");
+      oldBotMessages.forEach(msg => msg.remove());
+
+      fetch(scriptURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "userId=" + encodeURIComponent(userId)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          appendMessage("❌ " + data.error, "bot");
+        } else {
+          appendMessage(`✅ Name: ${data.name}\n📧 Email: ${data.email}`, "bot");
+        }
+      })
+      .catch(err => {
+        appendMessage("⚠️ Something went wrong.", "bot");
+        console.error(err);
+      });
+    }
+  </script>
+</body>                          
+</html>
